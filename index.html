@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление поездом</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="train-control">
+        <div class="buttons">
+            <button id="voice-question" class="control-button voice-button">Задать вопрос голосом</button>
+            <button id="text-question" class="control-button text-button">Задать вопрос текстом</button>
+        </div>
+        <div class="input-and-toggle">
+            <input id="question-input" type="text" placeholder="Введите ваш вопрос">
+            <label class="switch">
+                <input type="checkbox" id="response-mode-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <audio id="audio-response" controls style="display: none;"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
