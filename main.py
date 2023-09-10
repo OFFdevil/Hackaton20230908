@@ -1,47 +1,50 @@
-from flask import Flask, request, jsonify
-import os
-import speech_recognition as sr
-from gtts import gTTS
+from flask import Flask, request, render_template, send_file, jsonify
+import subprocess
 
 app = Flask(__name__)
 
-output_folder = "output"
+# Маршрут для обработки текстовых запросов
+@app.route('/text-process', methods=['POST'])
+def text_process():
+    try:
+        text_question = request.form.get('question', '')
+        
+        # Вызовите Python-скрипт для обработки текстового вопроса
+        subprocess.run(['python', 'process_text.py', text_question])
 
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+        # Чтение текстового ответа из файла
+        with open('result.txt', 'r') as text_file:
+            text_response = text_file.read()
 
-@app.route('/record-voice', methods=['POST'])
-def record_voice():
-    # Здесь можно добавить код для обработки записи голосом
-    # Например, сохранить аудио, распознать его и отправить ответ
+        return jsonify(text_response=text_response)
+    except Exception as e:
+        return jsonify(error=str(e))
 
-    response_text = "Пример ответа на запись голосом"
-    mp3_response_file = os.path.join(output_folder, "result.mp3")
-    tts = gTTS(response_text, lang='ru')
-    tts.save(mp3_response_file)
+# Маршрут для обработки аудио запросов
+@app.route('/audio-process', methods=['POST'])
+def audio_process():
+    try:
+        audio_data = request.data  # Получите аудио-запись от клиента
 
-    return jsonify({"text_response": response_text, "audio_response": mp3_response_file})
+        # Сохраните аудио-запись в файл
+        with open('audio_input.wav', 'wb') as audio_file:
+            audio_file.write(audio_data)
 
-@app.route('/text-question', methods=['POST'])
-def text_question():
-    data = request.get_json()
-    question_text = data.get('question', '')
-    response_mode = data.get('response_mode', 'text')
+        # Вызовите Python-скрипт для обработки аудио
+        subprocess.run(['python', 'process_audio.py', 'audio_input.wav'])
 
-    if response_mode == 'voice':
-        # Здесь можно добавить код для генерации аудио ответа
-        response_text = "Пример аудио ответа на вопрос"
-        mp3_response_file = os.path.join(output_folder, "result.mp3")
-        tts = gTTS(response_text, lang='ru')
-        tts.save(mp3_response_file)
-    else:
-        # Здесь можно добавить код для текстового ответа
-        response_text = "Пример текстового ответа на вопрос"
-        txt_response_file = os.path.join(output_folder, "result.txt")
-        with open(txt_response_file, 'w', encoding='utf-8') as text_file:
-            text_file.write(response_text)
+        # Прочтите текстовый ответ из result.txt
+        with open('result.txt', 'r') as text_file:
+            text_response = text_file.read()
 
-    return jsonify({"text_response": response_text})
+        return jsonify(text_response=text_response)
+    except Exception as e:
+        return jsonify(error=str(e))
+
+# Маршрут для отображения формы
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

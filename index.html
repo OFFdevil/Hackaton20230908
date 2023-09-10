@@ -1,81 +1,124 @@
-const voiceQuestionButton = document.getElementById('voice-question');
-const textQuestionButton = document.getElementById('text-question');
-const audioResponseElement = document.getElementById('audio-response');
-const questionInput = document.getElementById('question-input');
-const responseModeToggle = document.getElementById('response-mode-toggle');
-let mediaRecorder;
-let audioChunks = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задать вопрос</title>
+    <style>
+        body {
+            background-color: #141298; /* Синий фон */
+            color: #FFFFFF; /* Белый текст */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin: 0;
+            font-size: 64px;
+        }
 
-voiceQuestionButton.addEventListener('click', () => {
-    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-        startRecordingVoice();
-    } else if (mediaRecorder.state === 'recording') {
-        stopRecordingVoice();
-    }
-});
+        #container {
+            text-align: left;
+        }
 
-textQuestionButton.addEventListener('click', () => {
-    const question = questionInput.value.trim();
-    if (question) {
-        const mode = responseModeToggle.checked ? 'голосом' : 'текстом';
-        sendTextRequest(question, mode);
-    }
-});
+        /* Стили для размещения кнопок внизу */
+        .button-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #141298; /* Синий цвет фона */
+            padding: 0px;
+        }
 
-function startRecordingVoice() {
-    voiceQuestionButton.innerHTML = 'Вопрос записывается...';
-    audioChunks = [];
+        .button {
+            background-color: #141298; /* Белый цвет кнопок */
+            color: #FFFFFF; /* Синий текст на кнопках */
+            border: 4px solid #FFFFFF; /* Синяя рамка вокруг кнопок */
+            padding: 150px 40px; /* Установите одинаковое значение для высоты и ширины */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 32px;
+            margin: 0px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (stream) {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = function (e) {
-                if (e.data.size > 0) {
-                    audioChunks.push(e.data);
-                }
-            };
-            mediaRecorder.onstop = function () {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                audioResponseElement.src = audioUrl;
-                audioResponseElement.style.display = 'block';
-                voiceQuestionButton.innerHTML = 'Задать вопрос голосом';
-                sendVoiceRequest(audioBlob);
-            };
-            mediaRecorder.start();
-        })
-        .catch(function (err) {
-            console.error('Ошибка при получении доступа к микрофону:', err);
-        });
-}
+        .button:hover {
+            background-color: #1E90FF; /* Белый цвет фона кнопок при наведении */
+            color: #FFFFFF; /* Синий текст на кнопках при наведении */
+        }
 
-function stopRecordingVoice() {
-    if (mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-    }
-}
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
 
-function sendVoiceRequest(audioBlob) {
-    // Отправка аудио-записи на сервер
-    // Пример: fetch('/record-voice', {
-    //              method: 'POST',
-    //              body: audioBlob
-    //         })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             // Обработка ответа от сервера
-    //         });
-}
+        .toggle-label {
+            margin-right: 10px;
+        }
 
-function sendTextRequest(question, mode) {
-    // Отправка текстового вопроса на сервер
-    // Пример: fetch('/text-question', {
-    //              method: 'POST',
-    //              headers: { 'Content-Type': 'application/json' },
-    //              body: JSON.stringify({ question, mode })
-    //         })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             // Обработка ответа от сервера
-    //         });
-}
+        .toggle-button {
+            background-color: #141298;
+            color: #FFFFFF;
+            border: 4px solid #FFFFFF;
+            width: 200px;
+            height: auto;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 32px;
+            margin: 0px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+        }
+
+
+        .toggle-button:hover {
+            background-color: #1E90FF; /* Белый цвет фона кнопки при наведении */
+            color: #FFFFFF; /* Синий текст на кнопке при наведении */
+        }
+
+        #questionInput {
+            background-color: #141298;
+            color: #FFFFFF;
+            border: 4px solid #FFFFFF;
+            padding: 0px 0px; /* Здесь также можно установить значения по вашему выбору */
+            text-decoration: none;
+            display: inline-block;
+            font-size: 32px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            width: 40%;
+            height: 100%px; /* Заполните всю доступную высоту */
+            resize: vertical;
+        }
+
+        #audioResponse {
+            display: none;
+            margin-top: 50px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>RZD SOS</h1>
+    
+    <!-- Кнопки внизу -->
+    <div class="button-container">
+        <button class="button" id="voice-question">Задать вопрос голосом</button>
+        <button class="button" id="text-question">Задать вопрос текстом</button>
+        <button class="toggle-button" id="response-mode-toggle">Ответ голосом</button>
+        <textarea id="questionInput" placeholder="Задайте ваш вопрос"></textarea>
+    </div>
+    
+    <audio id="audio-response" controls style="display: none;"></audio>
+    <script src="script.js"></script>
+</body>
+</html>

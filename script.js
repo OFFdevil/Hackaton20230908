@@ -1,10 +1,11 @@
 const voiceQuestionButton = document.getElementById('voice-question');
 const textQuestionButton = document.getElementById('text-question');
 const audioResponseElement = document.getElementById('audio-response');
-const questionInput = document.getElementById('question-input');
+const questionInput = document.getElementById('questionInput');
 const responseModeToggle = document.getElementById('response-mode-toggle');
 let mediaRecorder;
 let audioChunks = [];
+var clickCount = 0;
 
 voiceQuestionButton.addEventListener('click', () => {
     if (!mediaRecorder || mediaRecorder.state === 'inactive') {
@@ -16,13 +17,19 @@ voiceQuestionButton.addEventListener('click', () => {
 
 textQuestionButton.addEventListener('click', () => {
     const question = questionInput.value.trim();
+    
     if (question) {
-        const mode = responseModeToggle.checked ? 'голосом' : 'текстом';
+        const mode = (clickCount + 1) % 2 ? 'голосом' : 'текстом';
         sendTextRequest(question, mode);
         // Очистить текстовое поле после отправки
         questionInput.value = '';
     }
 });
+
+responseModeToggle.addEventListener('click', () => {
+    responseModeToggle.innerHTML = (clickCount % 2) ? 'Ответ голосом' : 'Ответ текстом';
+    clickCount++;
+})
 
 
 function startRecordingVoice() {
@@ -57,31 +64,6 @@ function stopRecordingVoice() {
         mediaRecorder.stop();
     }
 }
-
-// function sendVoiceRequest(audioBlob) {
-//     // Отправка аудио-записи на сервер
-//     // Пример: fetch('/record-voice', {
-//     //              method: 'POST',
-//     //              body: audioBlob
-//     //         })
-//     //         .then(response => response.json())
-//     //         .then(data => {
-//     //             // Обработка ответа от сервера
-//     //         });
-// }
-
-// function sendTextRequest(question, mode) {
-//     // Отправка текстового вопроса на сервер
-//     // Пример: fetch('/text-question', {
-//     //              method: 'POST',
-//     //              headers: { 'Content-Type': 'application/json' },
-//     //              body: JSON.stringify({ question, mode })
-//     //         })
-//     //         .then(response => response.json())
-//     //         .then(data => {
-//     //             // Обработка ответа от сервера
-//     //         });
-// }
 
 // Отправка аудио-записи на сервер
 function sendVoiceRequest(audioBlob) {
