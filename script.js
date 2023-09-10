@@ -23,6 +23,8 @@ textQuestionButton.addEventListener('click', () => {
         sendTextRequest(question, mode);
         // Очистить текстовое поле после отправки
         questionInput.value = '';
+    } else {
+        alert("Запрос отсутствует")
     }
 });
 
@@ -48,7 +50,7 @@ function startRecordingVoice() {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const audioUrl = URL.createObjectURL(audioBlob);
                 audioResponseElement.src = audioUrl;
-                audioResponseElement.style.display = 'block';
+                // audioResponseElement.style.display = 'block'; // отображение аудио
                 voiceQuestionButton.innerHTML = 'Задать вопрос голосом';
                 sendVoiceRequest(audioBlob);
             };
@@ -97,6 +99,7 @@ function sendTextRequest(question, mode) {
             // Обработка текстового ответа
             // В данном случае, можно отобразить текстовый ответ на фронтенде
             alert(data.text_response);
+            // questionInput.value = data.text_response;
         }
     });
 }
