@@ -1,0 +1,7 @@
+python-docx
+openai-whisper
+tqdm
+catboost
+sklearn
+nlpaug
+gensim
