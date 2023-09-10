@@ -1,26 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление поездом</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="train-control">
-        <div class="buttons">
-            <button id="voice-question" class="control-button voice-button">Задать вопрос голосом</button>
-            <button id="text-question" class="control-button text-button">Задать вопрос текстом</button>
-        </div>
-        <div class="input-and-toggle">
-            <input id="question-input" type="text" placeholder="Введите ваш вопрос">
-            <label class="switch">
-                <input type="checkbox" id="response-mode-toggle">
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </div>
-    <audio id="audio-response" controls style="display: none;"></audio>
-    <script src="script.js"></script>
-</body>
-</html>
+const voiceQuestionButton = document.getElementById('voice-question');
+const textQuestionButton = document.getElementById('text-question');
+const audioResponseElement = document.getElementById('audio-response');
+const questionInput = document.getElementById('question-input');
+const responseModeToggle = document.getElementById('response-mode-toggle');
+let mediaRecorder;
+let audioChunks = [];
+
+voiceQuestionButton.addEventListener('click', () => {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        startRecordingVoice();
+    } else if (mediaRecorder.state === 'recording') {
+        stopRecordingVoice();
+    }
+});
+
+textQuestionButton.addEventListener('click', () => {
+    const question = questionInput.value.trim();
+    if (question) {
+        const mode = responseModeToggle.checked ? 'голосом' : 'текстом';
+        sendTextRequest(question, mode);
+    }
+});
+
+function startRecordingVoice() {
+    voiceQuestionButton.innerHTML = 'Вопрос записывается...';
+    audioChunks = [];
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function (stream) {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = function (e) {
+                if (e.data.size > 0) {
+                    audioChunks.push(e.data);
+                }
+            };
+            mediaRecorder.onstop = function () {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioResponseElement.src = audioUrl;
+                audioResponseElement.style.display = 'block';
+                voiceQuestionButton.innerHTML = 'Задать вопрос голосом';
+                sendVoiceRequest(audioBlob);
+            };
+            mediaRecorder.start();
+        })
+        .catch(function (err) {
+            console.error('Ошибка при получении доступа к микрофону:', err);
+        });
+}
+
+function stopRecordingVoice() {
+    if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+}
+
+function sendVoiceRequest(audioBlob) {
+    // Отправка аудио-записи на сервер
+    // Пример: fetch('/record-voice', {
+    //              method: 'POST',
+    //              body: audioBlob
+    //         })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             // Обработка ответа от сервера
+    //         });
+}
+
+function sendTextRequest(question, mode) {
+    // Отправка текстового вопроса на сервер
+    // Пример: fetch('/text-question', {
+    //              method: 'POST',
+    //              headers: { 'Content-Type': 'application/json' },
+    //              body: JSON.stringify({ question, mode })
+    //         })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             // Обработка ответа от сервера
+    //         });
+}
